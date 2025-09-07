@@ -1,6 +1,7 @@
 #include <csignal>
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -51,10 +52,12 @@ void Handler::run() {
 
 } // namespace stock
 
-int main()
+int main(int argc, char* argv[])
 {
+    uint64_t latency = 190; /* ms */
+    if (argc == 2) latency = atol(argv[1]);
     std::signal(SIGINT, sig_handler);
-    stock::Handler hander(190);
+    stock::Handler hander(latency);
     hander.run();
     return 0;
 }
