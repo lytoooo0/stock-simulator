@@ -10,6 +10,6 @@ else()
     message(STATUS "Debugging disabled")
 endif()
 
+include_directories(include)
 add_executable(stock_generator generator.cpp utils.cpp)
-
 add_executable(stock_handler handler.cpp utils.cpp)
