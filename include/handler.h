@@ -1,6 +1,10 @@
 #ifndef HANDLER_H
 #define HANDLER_H
 
+#ifdef ENABLE_BENCHMARK
+    #include <vector>
+#endif
+
 #include "config.h"
 #include "utils.h"
 
@@ -20,6 +24,10 @@ private:
     const std::string stock_buf_name = stock_buffer_name;
     const std::string sync_buf_name  = sync_buffer_name;
     static constexpr uint64_t shm_size = sizeof(Stock) * shm_capacity;
+
+#ifdef ENABLE_BENCHMARK
+    std::vector<double> duration_record;
+#endif
 };
 } // namespace stock
 

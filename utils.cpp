@@ -1,3 +1,4 @@
+#include <chrono>
 #include <fcntl.h>
 #include <algorithm>
 #include <random>
@@ -51,11 +52,12 @@ Price::Price() {
 Stock::Stock(const uint64_t max_stock_num ) {
         price = Price();
         id = random_u64(0, max_stock_num);
-        timestamp = std::chrono::system_clock::now();
+        timestamp = std::chrono::high_resolution_clock::now();
     }
 
 Stock::Stock(const uint64_t id_, const Price p_) : id(id_), price(p_) {};
 
 uint64_t Stock::get_id() const {return id;}
 Price Stock::get_price() const {return price;}
+std::chrono::system_clock::time_point Stock::get_timestamp() const {return timestamp;}
 } // namespace stock

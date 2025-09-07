@@ -49,13 +49,16 @@ Generator::Generator() {
 Generator::~Generator() {
     shared::memory::clean<Stock>(stock_buffer, &stock_fd, shm_size, stock_buf_name.c_str(), true);
     shared::memory::clean<shared::memory::SyncData>(sync_data, &sync_fd, sizeof(shared::memory::SyncData), sync_buf_name.c_str(), true);
+#ifdef ENABLE_DEBUGGING
+    double total_time = 0.0;
+    for (double time : duration_record) total_time += time;
+    double avg_time = total_time / duration_record.size() / 1000;
+    std::cout << "average time for generator to store stock info: " << avg_time << "us." << std::endl;
+#endif
 }
 
 void Generator::run() {
     uint64_t offset = 0;
-#ifdef ENABLE_BENCHMARK
-    // TODO:
-#endif
     while (keep_running) {
         uint64_t freq = freq_min + random_u64() % freq_range;
         std::this_thread::sleep_for(std::chrono::milliseconds(freq));
@@ -72,20 +75,19 @@ void Generator::run() {
         offset = (offset + 1) % max_stock_num;
         loop_count++;
     }
-#ifdef ENABLE_BENCHMARK
-    // TODO:
-#endif
 }
 
 // TODO: try inlining
 void Generator::update_info(uint64_t offset) {
 #ifdef ENABLE_BENCHMARK
-    // TODO:
+    auto start = std::chrono::high_resolution_clock::now();
 #endif
     std::atomic_thread_fence(std::memory_order_release);
     sync_data->stock_buf_idx.store(offset, std::memory_order_release);
 #ifdef ENABLE_BENCHMARK
-    // TODO:
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    duration_record.push_back(duration);
 #endif
 }
 

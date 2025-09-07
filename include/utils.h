@@ -31,6 +31,7 @@ public:
     Stock(const uint64_t id_, const Price p_);
     uint64_t get_id() const;
     Price get_price() const;
+    std::chrono::system_clock::time_point get_timestamp() const;
 private:
     uint64_t id;
     Price price;

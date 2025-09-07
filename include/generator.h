@@ -1,6 +1,7 @@
 #ifndef GENERATOR_H
 #define GENERATOR_H
 
+#include <vector>
 #include <cstdint>
 #include <string>
 #include <fcntl.h>
@@ -37,6 +38,9 @@ private:
     const std::string sync_buf_name  = sync_buffer_name;
     static constexpr uint64_t shm_size = sizeof(Stock) * shm_capacity;
     uint64_t loop_count = 0;  // For benchmark
+#ifdef ENABLE_BENCHMARK
+    std::vector<double> duration_record;
+#endif
 };
 
 } // namespace stock

@@ -31,6 +31,13 @@ Handler::~Handler() {
     }
     shared::memory::clean<Stock>(stock_buffer, &stock_fd, shm_size, stock_buf_name.c_str());
     shared::memory::clean<shared::memory::SyncData>(sync_data, &sync_fd, sizeof(shared::memory::SyncData), sync_buf_name.c_str());
+#ifdef ENABLE_BENCHMARK
+    double total_time = 0.0;
+    for (double time : duration_record) total_time += time;
+    double avg_time = total_time / duration_record.size() / 1000 / 1000;
+    std::cout << "average time from generator to handler: " << avg_time << "ms." << std::endl;
+
+#endif
 }
 
 void Handler::run() {
@@ -40,9 +47,15 @@ void Handler::run() {
     while(keep_running) {
         uint64_t current_write_index = sync_data->stock_buf_idx.load(std::memory_order_acquire);
         if (current_write_index != last_read_index) {
-            std::atomic_thread_fence(std::memory_order_acquire);
-            std::clog << stock_buffer[current_write_index] << std::endl;
+            std::atomic_thread_fence(std::memory_order_relaxed);
+            Stock latest_stock = stock_buffer[current_write_index];
+            std::clog << latest_stock << std::endl;
             last_read_index = current_write_index;
+#ifdef ENABLE_BENCHMARK
+            auto timestamp = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp - latest_stock.get_timestamp()).count();
+            duration_record.push_back(duration);
+#endif
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(latency));
