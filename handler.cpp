@@ -17,7 +17,7 @@ void sig_handler(int) {keep_running = false;}
 
 namespace stock {
 
-Handler::Handler(const int64_t lat): latency(lat) {
+Handler::Handler(const uint64_t lat): latency(lat) {
     shared::memory::init<Stock>(stock_buffer, &stock_fd, shm_size, stock_buf_name.c_str(), false);
     shared::memory::init<shared::memory::SyncData>(sync_data, &sync_fd, sizeof(shared::memory::SyncData), sync_buf_name.c_str(), false);
 }
@@ -32,7 +32,7 @@ void Handler::run() {
     uint64_t last_read_index = 0;
 
     while(keep_running) {
-        uint64_t current_write_index = sync_data->write_index.load(std::memory_order_acquire);
+        uint64_t current_write_index = sync_data->stock_buf_idx.load(std::memory_order_acquire);
 
         if (current_write_index != last_read_index) {
             std::atomic_thread_fence(std::memory_order_acquire);

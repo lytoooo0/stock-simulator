@@ -49,19 +49,17 @@ Generator::~Generator() {
 }
 
 void Generator::run() {
-    int64_t offset = 0;
+    uint64_t offset = 0;
 #ifdef ENABLE_BENCHMARK
     // TODO:
 #endif
     while (keep_running) {
-        int64_t freq = freq_min + random_u64() % freq_range;
+        uint64_t freq = freq_min + random_u64() % freq_range;
         std::this_thread::sleep_for(std::chrono::milliseconds(freq));
         Stock stock = Stock(max_stock_num);
         write_to_shm(stock, offset);
+        update_info(offset);
 
-        // Atomic coordination with memory barriers
-        std::atomic_thread_fence(std::memory_order_release);
-        sync_data->write_index.store(offset, std::memory_order_release);
 
 #ifdef ENABLE_DEBUGGING
         std::clog << "(" << freq << " ms) " << stock_buffer[offset] << std::endl;
@@ -74,17 +72,19 @@ void Generator::run() {
 #endif
 }
 
-void Generator::update_info(int64_t offset) {
+// TODO: try inlining
+void Generator::update_info(uint64_t offset) {
 #ifdef ENABLE_BENCHMARK
     // TODO:
 #endif
-
+    std::atomic_thread_fence(std::memory_order_release);
+    sync_data->stock_buf_idx.store(offset, std::memory_order_release);
 #ifdef ENABLE_BENCHMARK
     // TODO:
 #endif
 }
 
-void Generator::write_to_shm(const Stock &s, const int64_t off) {
+void Generator::write_to_shm(const Stock &s, const uint64_t off) {
     stock_buffer[off] = s;
 }
 
