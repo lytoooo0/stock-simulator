@@ -70,10 +70,18 @@ void Handler::run() {
 
 int main(int argc, char* argv[])
 {
-    uint64_t latency = 190; /* ms */
-    if (argc == 2) latency = atol(argv[1]);
-    std::signal(SIGINT, sig_handler);
-    stock::Handler hander(latency);
-    hander.run();
-    return 0;
+    try {
+        uint64_t latency = 190; /* ms */
+        if (argc == 2) latency = atol(argv[1]);
+        std::signal(SIGINT, sig_handler);
+        stock::Handler hander(latency);
+        hander.run();
+        return 0;
+    } catch (const std::exception& e) {
+        std::cerr << "Fatal error: " << e.what() << std::endl;
+        return 1;
+    } catch (...) {
+        std::cerr << "Fatal error: Unknown exception" << std::endl;
+        return 1;
+    }
 }

@@ -99,12 +99,20 @@ void Generator::write_to_shm(const Stock &s, const uint64_t off) {
 
 int main()
 {
-    std::signal(SIGINT, sig_handler);
+    try {
+        std::signal(SIGINT, sig_handler);
 #ifdef ENABLE_DEBUGGING
-    std::clog << "Debug mode enabled" << std::endl;
+        std::clog << "Debug mode enabled" << std::endl;
 #endif
-    stock::Generator stock_generator;
-    stock_generator.run();
+        stock::Generator stock_generator;
+        stock_generator.run();
 
-    return 0;
+        return 0;
+    } catch (const std::exception& e) {
+        std::cerr << "Fatal error: " << e.what() << std::endl;
+        return 1;
+    } catch (...) {
+        std::cerr << "Fatal error: Unknown exception" << std::endl;
+        return 1;
+    }
 }

@@ -12,6 +12,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdexcept>
 
 uint64_t random_u64(const uint64_t low = 0,   const uint64_t high = UINT64_MAX);
 double   random_f64(const double   low = 0.0, const double   high = 1.0);
@@ -62,20 +63,19 @@ void init(T *&addr, int *fd_p, const uint64_t size, const char *name,
 {
     int fd = shm_open(name, oflag, mode);
     if (fd == -1) {
-        std::cerr << "shm_open error: " << strerror(errno) << std::endl;
+        throw std::runtime_error(std::string("shm_open failed: ") + strerror(errno));
     }
     if (allocate) {
         int ftrunc_rst = ftruncate(fd, size);
         if (ftrunc_rst == -1) {
-            std::cerr << "ftruncate error: " << strerror(errno) << std::endl;
             close(fd);
-            return;
+            throw std::runtime_error(std::string("ftruncate failed: ") + strerror(errno));
         }
     }
     addr = (T *) mmap(nullptr, size, mflag, MAP_SHARED, fd, 0);
     if (addr == MAP_FAILED) {
-        std::cerr << "mmap error: " << strerror(errno) << std::endl;
-        return;
+        close(fd);
+        throw std::runtime_error(std::string("mmap failed: ") + strerror(errno));
     }
     *fd_p = fd;
     if (allocate) memset(addr, 0, size);
@@ -92,7 +92,6 @@ void clean(T *addr, int *fd_p, const uint64_t size, const char *name, const bool
     if (deallocate) {
         if (shm_unlink(name) == -1) {
             std::cerr << "shm_unlink error: "<< strerror(errno) << std::endl;
-            return;
         }
     }
 #ifdef ENABLE_DEBUGGING
