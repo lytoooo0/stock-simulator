@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <string>
+#include <cstdint>
 
 constexpr char stock_buffer_name[] = "/stock_buffer";
 constexpr char sync_buffer_name[] = "/sync_buffer";

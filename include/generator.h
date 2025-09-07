@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <string>
-#include <chrono>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>

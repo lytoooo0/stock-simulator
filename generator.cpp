@@ -16,7 +16,6 @@
 #ifdef ENABLE_DEBUGGING
     #include <iostream>
     #include <ostream>
-    #include <iomanip>
 #endif
 
 std::atomic<bool> keep_running{true};

@@ -1,12 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "config.h"
 #include <atomic>
 #include <cstring>
 #include <chrono>
-#include <algorithm>
-#include <vector>
 #include <cstdint>
 #include <ostream>
 #include <iostream>

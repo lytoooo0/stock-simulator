@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <algorithm>
 #include <random>
 #include <iostream>
 #include <ostream>
