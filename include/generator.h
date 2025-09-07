@@ -37,9 +37,10 @@ private:
     const std::string stock_buf_name = stock_buffer_name;
     const std::string sync_buf_name  = sync_buffer_name;
     static constexpr uint64_t shm_size = sizeof(Stock) * shm_capacity;
-    uint64_t loop_count = 0;  // For benchmark
 #ifdef ENABLE_BENCHMARK
     std::vector<double> duration_record;
+    uint64_t loop_count = 0;
+    double loop_duration = 0.0;
 #endif
 };
 
