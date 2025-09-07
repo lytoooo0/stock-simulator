@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 4.1)
 project(StockSystemSimulator)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 option(ENABLE_DEBUGGING "print debug info" ON)
 
 if(ENABLE_DEBUGGING)
