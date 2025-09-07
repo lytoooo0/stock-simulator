@@ -25,18 +25,19 @@ private:
     void init_shm();
     void clean_shm();
     void update_info(int64_t offset);
-    void write_to_shm(const Stock &s, int off);
+    void write_to_shm(const Stock &s, const int64_t off);
 
     int stock_fd = -1;
-    int info_fd = -1;
+    int sync_fd = -1;
     Stock *stock_buffer;
-    shared::memory::Info *info_buffer;
+    shared::memory::SyncData *sync_data;
     const int64_t stock_num = max_stock_num;
-    const int64_t freq_min   = 100; /* ms */
-    const int64_t freq_range = 200; /* ms */
+    const int64_t freq_min   = 1000; /* ms */
+    const int64_t freq_range = 2000; /* ms */
     const std::string stock_buf_name = stock_buffer_name;
-    const std::string info_buf_name  = info_buffer_name;
+    const std::string sync_buf_name  = sync_buffer_name;
     static constexpr int64_t shm_size = sizeof(Stock) * shm_capacity;
+    int64_t loop_count = 0;  // For benchmark
 };
 
 } // namespace stock

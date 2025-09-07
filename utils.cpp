@@ -48,9 +48,9 @@ Price::Price() {
 }
 
 Stock::Stock(const uint64_t max_stock_num ) {
-        timestamp = std::chrono::system_clock::now();
         price = Price();
         id = random_u64(0, max_stock_num);
+        timestamp = std::chrono::system_clock::now();
     }
 
 Stock::Stock(const uint64_t id_, const Price p_) : id(id_), price(p_) {};

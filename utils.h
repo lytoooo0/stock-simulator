@@ -48,16 +48,17 @@ std::ostream &operator<<(std::ostream &os, const Stock &s);
 namespace shared {
 namespace memory {
 
-struct Info {
-    int64_t num_handlers;
-    stock::Stock *stock_buf;
-    int64_t offset[info_buffer_size];
+struct alignas(64) SyncData {
+    std::atomic<uint64_t> write_index{0};
+    char pad1[64 - sizeof(std::atomic<uint64_t>)];
+    std::atomic<uint64_t> read_index{0};
+    char pad2[64 - sizeof(std::atomic<uint64_t>)];
 };
 
 template<typename T>
 void init(T *&addr, int *fd_p, const int64_t size, const char *name,
           const bool allocate = false,
-          const int oflag = (O_CREAT | O_RDWR),
+          const int oflag = (O_RDWR),
           const int mflag = (PROT_READ | PROT_WRITE),
           const mode_t mode = DEFFILEMODE)
 {

@@ -26,27 +26,31 @@ namespace stock {
 
 Generator::Generator() {
     int oflag = O_CREAT | O_RDWR | O_TRUNC;
-    shared::memory::init<shared::memory::Info>(info_buffer,
-                                               &info_fd,
-                                               sizeof(shared::memory::Info),
-                                               stock_buf_name.c_str(),
-                                               true,
-                                               oflag);
+    int mflag = PROT_READ | PROT_WRITE;
     shared::memory::init<Stock>(stock_buffer,
         &stock_fd,
         shm_size,
         stock_buf_name.c_str(),
         true,
-        oflag);
+        oflag,
+        mflag);
+
+    shared::memory::init<shared::memory::SyncData>(sync_data,
+        &sync_fd,
+        sizeof(shared::memory::SyncData),
+        sync_buf_name.c_str(),
+        true,
+        oflag,
+        mflag);
 }
 
 Generator::~Generator() {
     shared::memory::clean<Stock>(stock_buffer, &stock_fd, shm_size, stock_buf_name.c_str(), true);
-    shared::memory::clean<shared::memory::Info>(info_buffer, &info_fd, sizeof(shared::memory::Info), info_buf_name.c_str(), true);
+    shared::memory::clean<shared::memory::SyncData>(sync_data, &sync_fd, sizeof(shared::memory::SyncData), sync_buf_name.c_str(), true);
 }
 
 void Generator::run() {
-    int64_t cnt = 0;
+    int64_t offset = 0;
 #ifdef ENABLE_BENCHMARK
     // TODO:
 #endif
@@ -54,11 +58,17 @@ void Generator::run() {
         int64_t freq = freq_min + random_u64() % freq_range;
         std::this_thread::sleep_for(std::chrono::milliseconds(freq));
         Stock stock = Stock(max_stock_num);
+        write_to_shm(stock, offset);
+
+        // Atomic coordination with memory barriers
+        std::atomic_thread_fence(std::memory_order_release);
+        sync_data->write_index.store(offset, std::memory_order_release);
+
 #ifdef ENABLE_DEBUGGING
-        std::cout << "(" << freq << "ms) " << stock << std::endl;
+        std::clog << "(" << freq << " ms) " << stock_buffer[offset] << std::endl;
 #endif
-        write_to_shm(stock, cnt++);
-        cnt %= max_stock_num;
+        offset = (offset + 1) % max_stock_num;
+        loop_count++;
     }
 #ifdef ENABLE_BENCHMARK
     // TODO:
@@ -69,13 +79,13 @@ void Generator::update_info(int64_t offset) {
 #ifdef ENABLE_BENCHMARK
     // TODO:
 #endif
-    info_buffer->offset[0] = offset;
+
 #ifdef ENABLE_BENCHMARK
     // TODO:
 #endif
 }
 
-void Generator::write_to_shm(const Stock &s, int off) {
+void Generator::write_to_shm(const Stock &s, const int64_t off) {
     stock_buffer[off] = s;
 }
 
@@ -85,7 +95,7 @@ int main()
 {
     std::signal(SIGINT, sig_handler);
 #ifdef ENABLE_DEBUGGING
-    std::cout << "Debug mode enabled" << std::endl;
+    std::clog << "Debug mode enabled" << std::endl;
 #endif
     stock::Generator stock_generator;
     stock_generator.run();

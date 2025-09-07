@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <atomic>
 
-#include "config.h"
 #include "utils.h"
 #include "handler.h"
 
@@ -19,21 +18,29 @@ void sig_handler(int) {keep_running = false;}
 namespace stock {
 
 Handler::Handler(const int64_t lat): latency(lat) {
-    // TODO: Read and write Info async, there might be conpetition
     shared::memory::init<Stock>(stock_buffer, &stock_fd, shm_size, stock_buf_name.c_str(), false);
+    shared::memory::init<shared::memory::SyncData>(sync_data, &sync_fd, sizeof(shared::memory::SyncData), sync_buf_name.c_str(), false);
 }
 
 Handler::~Handler() {
     shared::memory::clean<Stock>(stock_buffer, &stock_fd, shm_size, stock_buf_name.c_str());
+    shared::memory::clean<shared::memory::SyncData>(sync_data, &sync_fd, sizeof(shared::memory::SyncData), sync_buf_name.c_str());
 }
 
 void Handler::run() {
     std::clog << "start reading" << std::endl;
-    int cnt = 0;
+    uint64_t last_read_index = 0;
+
     while(keep_running) {
+        uint64_t current_write_index = sync_data->write_index.load(std::memory_order_acquire);
+
+        if (current_write_index != last_read_index) {
+            std::atomic_thread_fence(std::memory_order_acquire);
+            std::clog << stock_buffer[current_write_index] << std::endl;
+            last_read_index = current_write_index;
+        }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(latency));
-        std::clog << stock_buffer[cnt++] << std::endl;
-        cnt %= max_stock_num;
     }
     std::clog << "finish reading" << std::endl;
 }
@@ -43,7 +50,7 @@ void Handler::run() {
 int main()
 {
     std::signal(SIGINT, sig_handler);
-    stock::Handler hander;
+    stock::Handler hander(190);
     hander.run();
     return 0;
 }
