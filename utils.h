@@ -98,7 +98,7 @@ void clean(T *addr, int *fd_p, const int64_t size, const char *name, const bool 
         }
     }
 #ifdef ENABLE_DEBUGGING
-    std::cout << "Shared memory cleaned up" << std::endl;
+    std::clog << "Shared memory cleaned up" << std::endl;
 #endif
 }
 
