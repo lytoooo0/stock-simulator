@@ -41,6 +41,9 @@ Generator::Generator() {
         true,
         oflag,
         mflag);
+
+    sync_data->num_handlers.store(0, std::memory_order_relaxed);
+    sync_data->stock_buf_idx.store(0, std::memory_order_relaxed);
 }
 
 Generator::~Generator() {
@@ -59,10 +62,12 @@ void Generator::run() {
         Stock stock = Stock(max_stock_num);
         write_to_shm(stock, offset);
         update_info(offset);
-
+        uint64_t current_handlers = sync_data->num_handlers.load(std::memory_order_relaxed);
 
 #ifdef ENABLE_DEBUGGING
-        std::clog << "(" << freq << " ms) " << stock_buffer[offset] << std::endl;
+        std::clog << "(" << freq << " ms) "
+                  << current_handlers << " handlers "
+                  << stock_buffer[offset] << std::endl;
 #endif
         offset = (offset + 1) % max_stock_num;
         loop_count++;

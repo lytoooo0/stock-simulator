@@ -76,8 +76,8 @@ void init(T *&addr, int *fd_p, const uint64_t size, const char *name,
         std::cerr << "mmap error: " << errno << std::endl;
         return;
     }
-    memset(addr, 0, size);
     *fd_p = fd;
+    if (allocate) memset(addr, 0, size);
 }
 
 template<typename T>
