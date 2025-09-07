@@ -62,19 +62,19 @@ void init(T *&addr, int *fd_p, const uint64_t size, const char *name,
 {
     int fd = shm_open(name, oflag, mode);
     if (fd == -1) {
-        std::cerr << "shm_open error: " << errno << std::endl;
+        std::cerr << "shm_open error: " << strerror(errno) << std::endl;
     }
     if (allocate) {
         int ftrunc_rst = ftruncate(fd, size);
         if (ftrunc_rst == -1) {
-            std::cerr << "ftruncate error: " << errno << std::endl;
+            std::cerr << "ftruncate error: " << strerror(errno) << std::endl;
             close(fd);
             return;
         }
     }
     addr = (T *) mmap(nullptr, size, mflag, MAP_SHARED, fd, 0);
     if (addr == MAP_FAILED) {
-        std::cerr << "mmap error: " << errno << std::endl;
+        std::cerr << "mmap error: " << strerror(errno) << std::endl;
         return;
     }
     *fd_p = fd;
@@ -84,14 +84,14 @@ void init(T *&addr, int *fd_p, const uint64_t size, const char *name,
 template<typename T>
 void clean(T *addr, int *fd_p, const uint64_t size, const char *name, const bool deallocate = false) {
     if (munmap(addr, size) == -1) {
-        std::cerr << "munmap error: "<< errno << std::endl;
+        std::cerr << "munmap error: "<< strerror(errno) << std::endl;
     }
     if (close(*fd_p) == -1) {
-        std::cerr << "close error: "<< errno << std::endl;
+        std::cerr << "close error: "<< strerror(errno) << std::endl;
     }
     if (deallocate) {
         if (shm_unlink(name) == -1) {
-            std::cerr << "shm_unlink error: "<< errno << std::endl;
+            std::cerr << "shm_unlink error: "<< strerror(errno) << std::endl;
             return;
         }
     }
