@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <atomic>
 
+#include "config.h"
 #include "utils.h"
 #include "handler.h"
 
@@ -59,6 +60,8 @@ void Handler::run() {
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(latency));
+        uint64_t offset = current_write_index + 1 % max_stock_num;
+        __builtin_prefetch(stock_buffer + current_write_index + offset, 0 /* read */, 1 /* low temporal locality */);
     }
     std::clog << "finish reading" << std::endl;
 }
